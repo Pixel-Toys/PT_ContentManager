@@ -1,2 +1,2 @@
-////////////////////
-Hello1
+The Content package provides should have the implementation regarding the content management in Playtime.
+It is a wrapper for Addressable, so if we ever need to change to a different pipeline, we can do it easily.
