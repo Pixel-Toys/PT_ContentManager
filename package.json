@@ -1,0 +1,23 @@
+{
+  "name": "com.pixeltoys.pt.shared.packagerepotemplate",
+  "displayName": "PT RepoTemplate",
+  "version": "0.1.1",
+  "unity": "2018.4",
+  "description": "Template for package repo",
+  "dependencies": {
+  },
+  "author": {
+    "name": "Pixel Toys",
+    "email": "support@pixeltoys.com",
+    "url": "https://github.com/Pixel-Toys/PT_PackageRepoTemplate.git"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Pixel-Toys/PT_PackageRepoTemplate.git",
+    "directory": "com.pixeltoys.pt.shared.packagerepotemplate",
+    "branch": "main"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/@Pixel-Toys"
+  }
+}

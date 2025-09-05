@@ -1,0 +1,42 @@
+name: Publish Release Package
+on:
+  push:
+    branches: 
+      - main
+jobs:
+  PublishPackage:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    # Setup .npmrc file to publish to GitHub Packages
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '12.x'
+        registry-url: 'https://npm.pkg.github.com'
+        scope: '@octocat' # Defaults to the user or organization that owns the workflow file
+    - run: |
+        current_version="$(grep -Po '"version":(\d*?,|.*?[^\\]",)' package.json | awk -F':' '{print $2}' | tr -d '",')"
+        version=$(echo $current_version | cut -d- -f1)
+
+        old_str=$(echo $current_version)
+        version_str=$(echo $version)
+
+        GIT_BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
+        tidied_branch=$(echo $GIT_BRANCH | sed 's/\///g' | sed 's/[-_]//g')
+        echo "GIT_BRANCH=$GIT_BRANCH" >> $GITHUB_ENV
+
+        sed -i "s|$old_str|$version_str|g" package.json
+
+        cat package.json
+
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git fetch
+        git checkout main
+        git add .
+        git commit -m "[skip actions] Update version"
+        git push
+
+        npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

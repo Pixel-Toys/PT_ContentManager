@@ -1,0 +1,61 @@
+name: Publish Preview Package
+on:
+  pull_request:
+    branches: 
+      - main
+jobs:
+  PublishPackage:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: at-wat/setup-gh-pr-comment@v0
+    # Setup .npmrc file to publish to GitHub Packages
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '12.x'
+        registry-url: 'https://npm.pkg.github.com'
+        scope: '@octocat' # Defaults to the user or organization that owns the workflow file
+      id: vars
+    - run: |
+        current_version="$(grep -Po '"version":(\d*?,|.*?[^\\]",)' package.json | awk -F':' '{print $2}' | tr -d '",')"
+
+        GIT_BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
+        tidied_branch=$(echo $GIT_BRANCH | sed 's/\///g' | sed 's/[-_]//g')
+        echo "GIT_BRANCH=$GIT_BRANCH" >> $GITHUB_ENV
+
+        if [[ $current_version == *"-preview-"* ]]; then
+          if [[ $current_version == *"$tidied_branch"* ]]; then
+            increment=$(echo $current_version | rev | cut -d. -f1 | rev)
+            ((increment++))
+            version=$(echo $current_version | cut -d- -f1)
+
+            old_str=$(echo $current_version)
+            version_str=$(echo $version)
+            new_str="${version_str}-preview-${tidied_branch}.${increment}"
+          else
+            old_str=$(echo $current_version)
+            new_str="${old_str}-${tidied_branch}.1"
+          fi
+        else
+          old_str=$(echo $current_version)
+          new_str="${old_str}-preview-${tidied_branch}.1"
+        fi
+
+        sed -i "s|$old_str|$new_str|g" package.json
+
+        cat package.json
+
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git fetch
+        git checkout $GIT_BRANCH
+        git add .
+        git commit -m "[skip actions] Update version"
+        git push
+
+        npm publish
+
+        gh-pr-comment "Package Published - ${new_str}" "Package version ${new_str} has been published, please update your manifest to use the new version"
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
