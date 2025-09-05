@@ -1,7 +1,7 @@
 {
   "name": "com.pixeltoys.pt.shared.contentmanager",
   "displayName": "PT Content Manager",
-  "version": "0.1.2",
+  "version": "0.1.2-preview-featurescreatingpack.1",
   "unity": "2022.3",
   "description": "Content Manager for Pixel Toys projects.",
   "dependencies": {
